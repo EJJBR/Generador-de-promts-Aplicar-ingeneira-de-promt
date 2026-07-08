@@ -21,4 +21,5 @@ Thumbs.db
 # Logs
 *.log
 
+# Documentos de la tesis (mantener fuera de línea)
 docs/
