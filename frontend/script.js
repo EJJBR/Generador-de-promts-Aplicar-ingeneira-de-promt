@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:8000/generar-prompt";
+const API_URL = "/generar-prompt";
 
 document.getElementById("btnGenerar").addEventListener("click", async () => {
   const consulta = document.getElementById("consulta").value.trim();
