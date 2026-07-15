@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Generador de Prompts</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Generador de Prompts</h1>
+    <p class="subtitulo">Escribe tu duda de estadística y te diremos qué IA usar</p>
+
+    <textarea id="consulta" placeholder="Ej: No entiendo cómo sacar la mediana..."></textarea>
+    <button id="btnGenerar">Generar</button>
+
+    <div id="loading" class="oculto">Procesando...</div>
+
+    <div id="resultado" class="oculto">
+      <div class="card">
+        <p><strong>Tema:</strong> <span id="tema"></span></p>
+        <p><strong>Nivel:</strong> <span id="nivel"></span></p>
+        <p><strong>IA recomendada:</strong> <span id="ia" class="ia-badge"></span></p>
+        <p><strong>Por qué:</strong> <span id="justificacion"></span></p>
+        <hr>
+        <p><strong>Prompt optimizado:</strong></p>
+        <div class="prompt-box" id="promptOptimizado"></div>
+        <button id="btnCopiar">Copiar prompt</button>
+      </div>
+    </div>
+
+    <div id="error" class="oculto error"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
