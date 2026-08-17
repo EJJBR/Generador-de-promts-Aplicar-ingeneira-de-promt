@@ -4,7 +4,7 @@ from app.prompts.prompt_diagnostico import SYSTEM_PROMPT
 from app.services.imagen_service import crear_mensaje_imagen
 
 MODEL_TEXTO = "llama-3.3-70b-versatile"
-MODEL_VISION = "qwen/qwen3-32b"
+MODEL_VISION = "qwen/qwen3.6-27b"
 
 
 def clasificar_consulta(consulta: str) -> dict:
