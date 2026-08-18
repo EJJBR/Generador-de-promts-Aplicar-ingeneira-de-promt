@@ -12,15 +12,72 @@ const sendBtn = document.getElementById("sendBtn");
 const attachBtn = document.getElementById("attachBtn");
 const fileInput = document.getElementById("fileInput");
 const previewEl = document.getElementById("preview");
-const previewImg = document.getElementById("previewImg");
-const previewRemove = document.getElementById("previewRemove");
+const previewList = document.getElementById("previewList");
 const menuBtn = document.getElementById("menuBtn");
 const sidebar = document.getElementById("sidebar");
 const themeBtn = document.getElementById("themeBtn");
 const themeIcon = document.getElementById("themeIcon");
 const chips = document.querySelectorAll(".chip");
 
-let imagenSeleccionada = null;
+const MAX_IMAGENES = 4;
+let imagenesSeleccionadas = [];
+
+function renderizarPreviews() {
+  if (!previewList) return;
+
+  previewList.innerHTML = "";
+
+  if (imagenesSeleccionadas.length === 0) {
+    previewEl.hidden = true;
+    return;
+  }
+
+  previewEl.hidden = false;
+
+  imagenesSeleccionadas.forEach((archivo, index) => {
+    const item = document.createElement("div");
+    item.className = "preview-item";
+
+    const img = document.createElement("img");
+    img.alt = `Vista previa ${index + 1}`;
+
+    const lector = new FileReader();
+    lector.onload = (e) => {
+      img.src = e.target.result;
+    };
+    lector.readAsDataURL(archivo);
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "preview-remove";
+    btn.setAttribute("aria-label", `Quitar imagen ${index + 1}`);
+    btn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path d="M18.3 5.71 12 12.01l-6.3-6.3-1.41 1.41 6.3 6.3-6.3 6.3 1.41 1.41 6.3-6.3 6.3 6.3 1.41-1.41-6.3-6.3 6.3-6.3z"/></svg>';
+    btn.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      imagenesSeleccionadas = imagenesSeleccionadas.filter((_, idx) => idx !== index);
+      if (fileInput) fileInput.value = "";
+      renderizarPreviews();
+    });
+
+    item.appendChild(img);
+    item.appendChild(btn);
+    previewList.appendChild(item);
+  });
+}
+
+function limpiarImagenesSeleccionadas() {
+  imagenesSeleccionadas = [];
+  if (fileInput) {
+    fileInput.value = "";
+  }
+  if (previewEl) {
+    previewEl.hidden = true;
+  }
+  if (previewList) {
+    previewList.innerHTML = "";
+  }
+}
 
 /* ---------- Tema claro/oscuro ---------- */
 const ICONO_SOL = '<path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1zm0 18a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1zM3 11a1 1 0 0 1 1 1H2a1 1 0 1 1 0-2h2a1 1 0 0 1-1 1zm18 0a1 1 0 0 1 1 1h2a1 1 0 1 1 0-2h-2a1 1 0 0 1-1 1zM4.2 4.2a1 1 0 0 1 1.4 0l1.4 1.4a1 1 0 1 1-1.4 1.4L4.2 5.6a1 1 0 0 1 0-1.4zm14.8 14.8a1 1 0 0 1 1.4 0l1.4 1.4a1 1 0 1 1-1.4 1.4l-1.4-1.4a1 1 0 0 1 0-1.4zM19.8 4.2a1 1 0 0 1 0 1.4l-1.4 1.4a1 1 0 1 1-1.4-1.4l1.4-1.4a1 1 0 0 1 1.4 0zM5.6 18.6a1 1 0 0 1 0 1.4L4.2 21.4a1 1 0 1 1-1.4-1.4l1.4-1.4a1 1 0 0 1 1.4 0z"/>';
@@ -60,21 +117,26 @@ chips.forEach((chip) => {
 attachBtn.addEventListener("click", () => fileInput.click());
 
 fileInput.addEventListener("change", () => {
-  const archivo = fileInput.files[0];
-  if (!archivo) return;
-  imagenSeleccionada = archivo;
-  const lector = new FileReader();
-  lector.onload = (e) => {
-    previewImg.src = e.target.result;
-    previewEl.hidden = false;
-  };
-  lector.readAsDataURL(archivo);
-});
+  const archivos = Array.from(fileInput.files || []);
+  if (!archivos.length) {
+    limpiarImagenesSeleccionadas();
+    return;
+  }
 
-previewRemove.addEventListener("click", () => {
-  imagenSeleccionada = null;
+  const nuevos = archivos.filter((archivo) => archivo && archivo.type && archivo.type.startsWith("image/"));
+  const actuales = imagenesSeleccionadas.length;
+  const restantes = MAX_IMAGENES - actuales;
+
+  if (restantes <= 0) {
+    alert(`Máximo ${MAX_IMAGENES} imágenes a la vez.`);
+    fileInput.value = "";
+    return;
+  }
+
+  const paraAgregar = nuevos.slice(0, restantes);
+  imagenesSeleccionadas = [...imagenesSeleccionadas, ...paraAgregar];
+  renderizarPreviews();
   fileInput.value = "";
-  previewEl.hidden = true;
 });
 
 /* ---------- Utilidades de mensajes ---------- */
@@ -85,22 +147,36 @@ function crearAvatarBot() {
   return div;
 }
 
-function agregarMensajeUsuario(texto, imagenDataUrl) {
+function agregarMensajeUsuario(texto, imagenesDataUrls) {
   const msg = document.createElement("div");
   msg.className = "msg msg-user";
   const bubble = document.createElement("div");
   bubble.className = "bubble";
+
   if (texto) {
     const p = document.createElement("p");
     p.textContent = texto;
     bubble.appendChild(p);
   }
-  if (imagenDataUrl) {
-    const img = document.createElement("img");
-    img.src = imagenDataUrl;
-    img.alt = "Imagen enviada";
-    bubble.appendChild(img);
+
+  const imagenes = Array.isArray(imagenesDataUrls)
+    ? imagenesDataUrls
+    : imagenesDataUrls ? [imagenesDataUrls] : [];
+
+  if (imagenes.length > 0) {
+    const contenedor = document.createElement("div");
+    contenedor.className = "message-images";
+
+    imagenes.forEach((url) => {
+      const img = document.createElement("img");
+      img.src = url;
+      img.alt = "Imagen enviada";
+      contenedor.appendChild(img);
+    });
+
+    bubble.appendChild(contenedor);
   }
+
   msg.appendChild(bubble);
   messagesEl.appendChild(msg);
   desplazarAbajo();
@@ -205,17 +281,17 @@ composerEl.addEventListener("submit", async (e) => {
   e.preventDefault();
   const texto = inputEl.value.trim();
 
-  if (!texto && !imagenSeleccionada) {
+  if (!texto && imagenesSeleccionadas.length === 0) {
     inputEl.focus();
     return;
   }
 
-  const imagenPreviaUrl = imagenSeleccionada ? previewImg.src : null;
-  agregarMensajeUsuario(texto, imagenPreviaUrl);
+  const archivosParaEnviar = [...imagenesSeleccionadas];
+  const imagenesParaMostrar = archivosParaEnviar.map((archivo) => URL.createObjectURL(archivo));
+  agregarMensajeUsuario(texto, imagenesParaMostrar);
 
   inputEl.value = "";
-  fileInput.value = "";
-  previewEl.hidden = true;
+  limpiarImagenesSeleccionadas();
   sendBtn.disabled = true;
 
   agregarCargando();
@@ -223,19 +299,15 @@ composerEl.addEventListener("submit", async (e) => {
   try {
     let respuesta;
     
-    // Decidir qué endpoint usar según si hay imagen
-    if (imagenSeleccionada) {
-      // Si hay imagen: usar FormData y endpoint /generar-prompt/imagen
+    if (archivosParaEnviar.length > 0) {
       const formData = new FormData();
       formData.append("consulta", texto);
-      formData.append("imagen", imagenSeleccionada);
-      
+      archivosParaEnviar.forEach((archivo) => formData.append("imagenes", archivo));
       respuesta = await fetch("/generar-prompt/imagen", {
         method: "POST",
         body: formData,
       });
     } else {
-      // Si NO hay imagen: usar JSON y endpoint /generar-prompt
       respuesta = await fetch("/generar-prompt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -256,7 +328,6 @@ composerEl.addEventListener("submit", async (e) => {
     quitarCargando();
     agregarError(err.message || "Ocurrió un error inesperado. Intenta de nuevo.");
   } finally {
-    imagenSeleccionada = null;
     sendBtn.disabled = false;
     inputEl.focus();
   }

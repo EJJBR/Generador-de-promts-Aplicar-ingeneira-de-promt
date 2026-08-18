@@ -63,16 +63,13 @@
 
       <form class="composer" id="composer">
         <div class="preview" id="preview" hidden>
-          <img id="previewImg" alt="Vista previa de la imagen adjunta">
-          <button type="button" class="preview-remove" id="previewRemove" aria-label="Quitar imagen">
-            <svg class="icon" viewBox="0 0 24 24"><path d="M18.3 5.71 12 12.01l-6.3-6.3-1.41 1.41 6.3 6.3-6.3 6.3 1.41 1.41 6.3-6.3 6.3 6.3 1.41-1.41-6.3-6.3 6.3-6.3z"/></svg>
-          </button>
+          <div class="preview-list" id="previewList"></div>
         </div>
         <div class="composer-row">
           <button type="button" class="icon-btn" id="attachBtn" aria-label="Adjuntar imagen">
             <svg class="icon" viewBox="0 0 24 24"><path d="M16.5 6v11.5a4 4 0 0 1-8 0V5a2.5 2.5 0 0 1 5 0v10.5a1 1 0 0 1-2 0V6H10v9.5a2.5 2.5 0 0 0 5 0V5a4 4 0 0 0-8 0v12.5a5.5 5.5 0 0 0 11 0V6z"/></svg>
           </button>
-          <input type="file" id="fileInput" accept="image/*" hidden>
+          <input type="file" id="fileInput" accept="image/*" multiple hidden>
           <input type="text" id="consultaInput" class="text-input" placeholder="Escribe tu duda de estadística..." autocomplete="off">
           <button type="submit" class="send-btn" id="sendBtn" aria-label="Enviar">
             <svg class="icon" viewBox="0 0 24 24"><path d="M4 12l16-7-6.5 7L20 19z"/></svg>

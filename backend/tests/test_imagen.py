@@ -31,6 +31,43 @@ def crear_imagen_test(formato: str = "JPEG") -> BytesIO:
 class TestEndpointImagenConMock:
     """Tests para el endpoint /generar-prompt/imagen con Groq mockeado"""
 
+    def test_generar_prompt_imagen_varias_imagenes_exitoso(self):
+        """Test: acepta más de una imagen y las envía en un solo mensaje"""
+        mock_response = {
+            "tema": "Probabilidad",
+            "nivel": "Básico",
+            "ia_recomendada": "Claude",
+            "justificacion": "Para análisis de varios gráficos",
+            "prompt_optimizado": "Analiza ambos gráficos"
+        }
+
+        imagen_1 = crear_imagen_test("JPEG")
+        imagen_2 = crear_imagen_test("PNG")
+
+        with patch("app.services.clasificador.get_client") as mock_get_client:
+            mock_client = MagicMock()
+            mock_get_client.return_value = mock_client
+
+            mock_response_obj = MagicMock()
+            mock_response_obj.choices[0].message.content = json.dumps(mock_response)
+            mock_client.chat.completions.create.return_value = mock_response_obj
+
+            response = client.post(
+                "/generar-prompt/imagen",
+                data={"consulta": "Analiza estos gráficos"},
+                files=[
+                    ("imagenes", ("uno.jpg", imagen_1, "image/jpeg")),
+                    ("imagenes", ("dos.png", imagen_2, "image/png")),
+                ],
+            )
+
+        assert response.status_code == 200
+        assert response.json()["tema"] == "Probabilidad"
+        call_args = mock_client.chat.completions.create.call_args
+        content = call_args.kwargs["messages"][1]["content"]
+        assert len(content) == 3
+        assert any(item.get("type") == "image_url" for item in content)
+
     def test_generar_prompt_imagen_exitoso(self):
         """Test: endpoint recibe imagen + consulta, devuelve clasificación"""
         mock_response = {
