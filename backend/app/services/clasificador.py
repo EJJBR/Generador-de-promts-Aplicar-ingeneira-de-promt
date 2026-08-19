@@ -1,10 +1,11 @@
 import json
+import os
 from app.services.groq_client import get_client
 from app.prompts.prompt_diagnostico import SYSTEM_PROMPT
 from app.services.imagen_service import crear_mensaje_imagen, crear_mensaje_varias_imagenes
 
-MODEL_TEXTO = "llama-3.3-70b-versatile"
-MODEL_VISION = "qwen/qwen3.6-27b"
+MODEL_TEXTO = os.getenv("GROQ_TEXT_MODEL", "openai/gpt-oss-120b")
+MODEL_VISION = os.getenv("GROQ_VISION_MODEL", "qwen/qwen3.6-27b")
 
 
 def clasificar_consulta(consulta: str) -> dict:
