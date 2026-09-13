@@ -24,3 +24,8 @@ Thumbs.db
 
 # Documentos de la tesis (mantener fuera de línea)
 docs/
+
+# Archivos de comparacion con git
+*.diff
+*.patch
+diff.txt

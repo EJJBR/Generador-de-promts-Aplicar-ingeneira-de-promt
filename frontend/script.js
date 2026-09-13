@@ -22,6 +22,43 @@ const chips = document.querySelectorAll(".chip");
 const MAX_IMAGENES = 4;
 let imagenesSeleccionadas = [];
 
+const imageModal = document.getElementById("imageModal");
+const imageModalImg = document.getElementById("imageModalImg");
+const imageModalClose = document.getElementById("imageModalClose");
+const imageModalBackdrop = document.getElementById("imageModalBackdrop");
+
+function abrirImageModal(src, alt = "Previsualización de imagen") {
+  if (!imageModal || !imageModalImg) return;
+
+  imageModalImg.src = src;
+  imageModalImg.alt = alt;
+  imageModal.classList.add("visible");
+  imageModal.setAttribute("aria-hidden", "false");
+}
+
+function cerrarImageModal() {
+  if (!imageModal || !imageModalImg) return;
+
+  imageModal.classList.remove("visible");
+  imageModal.setAttribute("aria-hidden", "true");
+  imageModalImg.removeAttribute("src");
+  imageModalImg.alt = "";
+}
+
+previewList?.addEventListener("click", (event) => {
+  const img = event.target.closest("img");
+  if (!img || !img.src) return;
+  abrirImageModal(img.src, "Vista previa de imagen seleccionada");
+});
+
+imageModalClose?.addEventListener("click", cerrarImageModal);
+imageModalBackdrop?.addEventListener("click", cerrarImageModal);
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && imageModal && imageModal.getAttribute("aria-hidden") === "false") {
+    cerrarImageModal();
+  }
+});
+
 function renderizarPreviews() {
   if (!previewList) return;
 
@@ -171,6 +208,8 @@ function agregarMensajeUsuario(texto, imagenesDataUrls) {
       const img = document.createElement("img");
       img.src = url;
       img.alt = "Imagen enviada";
+      img.className = "message-image";
+      img.addEventListener("click", () => abrirImageModal(url, "Imagen enviada"));
       contenedor.appendChild(img);
     });
 
