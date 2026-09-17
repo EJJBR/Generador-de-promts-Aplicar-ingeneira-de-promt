@@ -463,6 +463,136 @@ body {
   background: var(--card);
 }
 
+.composer-drop {
+  outline: 2px dashed var(--azul);
+  outline-offset: -6px;
+  background: var(--bg-soft, var(--bg));
+}
+
+.source-modal,
+.camera-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.source-modal.visible,
+.camera-modal.visible {
+  display: flex;
+}
+
+.source-modal-backdrop,
+.camera-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.source-modal-dialog,
+.camera-modal-dialog {
+  position: relative;
+  z-index: 2;
+  width: min(680px, calc(100vw - 40px));
+  background: var(--card);
+  color: var(--text);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.source-modal-header,
+.camera-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.source-modal-title,
+.camera-modal-title {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.source-modal-text {
+  margin: 16px 0 12px;
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.source-modal-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.source-modal-option {
+  min-height: 56px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.source-modal-option:hover {
+  background: var(--celeste);
+  border-color: var(--azul);
+  transform: translateY(-2px);
+}
+
+.source-modal-option .icon {
+  width: 22px;
+  height: 22px;
+}
+
+.camera-close {
+  border-radius: 50%;
+}
+
+.camera-modal-dialog video {
+  width: 100%;
+  max-height: 420px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  margin: 14px 0 12px;
+  object-fit: cover;
+}
+
+.camera-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.camera-action {
+  border-radius: 999px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.camera-action.capture {
+  background: var(--azul);
+  color: #fff;
+  border-color: var(--azul);
+}
+
 .preview {
   display: flex;
   align-items: center;
@@ -542,6 +672,11 @@ body {
 }
 
 .text-input:focus {
+  border-color: var(--azul);
+  box-shadow: 0 0 0 3px var(--celeste);
+}
+
+.text-input.drag-target {
   border-color: var(--azul);
   box-shadow: 0 0 0 3px var(--celeste);
 }

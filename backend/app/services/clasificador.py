@@ -11,8 +11,8 @@ from app.services.imagen_service import crear_mensaje_imagen, crear_mensaje_vari
 logger = logging.getLogger(__name__)
 
 MODEL_TEXTO = os.getenv("GROQ_TEXT_MODEL", "openai/gpt-oss-120b")
-MODEL_VISION = os.getenv("GROQ_VISION_MODEL", "qwen/qwen3.6-27b")
-MODEL_VISION_FALLBACK = os.getenv("GROQ_VISION_FALLBACK_MODEL", "qwen/qwen3.8-27b")
+MODEL_VISION = os.getenv("GROQ_VISION_MODEL", "qwen/qwen3.8-27b")
+MODEL_VISION_FALLBACK = os.getenv("GROQ_VISION_FALLBACK_MODEL", "").strip()
 
 
 def _extract_json_from_content(contenido: str) -> dict:
@@ -27,7 +27,7 @@ def _extract_json_from_content(contenido: str) -> dict:
 
 
 def _es_groq_rate_limit_error(exc: Exception) -> bool:
-    """Detecta fallos de Groq por cuota/OTPM o salida por minuto."""
+    """Detecta fallos recuperables al intentar la ruta visual."""
     texto = str(exc).lower()
     return (
         "rate_limit_exceeded" in texto
@@ -36,7 +36,13 @@ def _es_groq_rate_limit_error(exc: Exception) -> bool:
         or "request too large" in texto
         or "max completion tokens" in texto
         or "429" in texto
+        or "model_not_found" in texto
     )
+
+
+def _modelos_visuales() -> list[str]:
+    """Devuelve modelos visuales configurados sin repetir el principal."""
+    return list(dict.fromkeys(model for model in (MODEL_VISION, MODEL_VISION_FALLBACK) if model))
 
 
 def clasificar_consulta(consulta: str) -> dict:
@@ -90,7 +96,7 @@ def clasificar_consulta_con_varias_imagenes(
     mensaje_usuario = crear_mensaje_varias_imagenes(consulta, imagenes)
     last_error = None
 
-    for model in (MODEL_VISION, MODEL_VISION_FALLBACK):
+    for model in _modelos_visuales():
         timestamp = datetime.now(timezone.utc).isoformat()
         logger.info(
             "groq_image_route_attempt model=%s at=%s images=%d consulta_len=%d",

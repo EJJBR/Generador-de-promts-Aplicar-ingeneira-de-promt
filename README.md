@@ -94,7 +94,8 @@ generador-prompts/
    GROQ_API_KEY=tu_api_key_aqui
    ```
 4. Ejecutar el servidor:
-   ```uvicorn app.main:app --reload
+   ```
+   uvicorn app.main:app --reload
    ```
 
 **Importante:** el archivo `.env` nunca se sube a GitHub (ya está en `.gitignore`). Cada quien usa su propia API key localmente, y en producción se configura como variable de entorno en el panel del proveedor de hosting.

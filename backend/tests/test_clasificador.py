@@ -69,7 +69,22 @@ def test_clasificar_consulta_con_varias_imagenes_logs_fallback_y_modelos(caplog)
 
 	assert resultado == {"tema": "estadística"}
 	assert fallback_text.called
-	assert "qwen/qwen3.6-27b" in caplog.text
 	assert "qwen/qwen3.8-27b" in caplog.text
-	assert "texto" in caplog.text.lower()
+	assert "groq_text_fallback_attempt" in caplog.text
+
+
+def test_clasificar_consulta_con_imagen_degrada_si_modelo_no_existe(caplog):
+	model_not_found = Exception("Error code: 404 - model_not_found")
+	mock_client = MagicMock()
+	mock_client.chat.completions.create.side_effect = model_not_found
+
+	with patch("app.services.clasificador.get_client", return_value=mock_client), \
+		patch("app.services.clasificador.crear_mensaje_varias_imagenes", return_value={"role": "user", "content": "mensaje"}), \
+		patch("app.services.clasificador.clasificar_consulta", return_value={"tema": "estadística"}) as fallback_text:
+		with caplog.at_level(logging.INFO):
+			resultado = clasificar_consulta_con_varias_imagenes("consulta", [("base64", "image/jpeg")])
+
+	assert resultado == {"tema": "estadística"}
+	assert fallback_text.called
+	assert "groq_image_degrade_to_text" in caplog.text
 

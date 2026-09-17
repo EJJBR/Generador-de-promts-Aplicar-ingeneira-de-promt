@@ -27,6 +27,20 @@ const imageModalImg = document.getElementById("imageModalImg");
 const imageModalClose = document.getElementById("imageModalClose");
 const imageModalBackdrop = document.getElementById("imageModalBackdrop");
 
+const sourceModal = document.getElementById("sourceModal");
+const sourceModalClose = document.getElementById("sourceModalClose");
+const sourceModalBackdrop = document.getElementById("sourceModalBackdrop");
+const cameraSourceBtn = document.getElementById("cameraSourceBtn");
+const fileSourceBtn = document.getElementById("fileSourceBtn");
+
+const cameraModal = document.getElementById("cameraModal");
+const cameraModalClose = document.getElementById("cameraModalClose");
+const cameraModalBackdrop = document.getElementById("cameraModalBackdrop");
+const cameraVideo = document.getElementById("cameraVideo");
+const cameraCaptureBtn = document.getElementById("cameraCaptureBtn");
+const cameraCancelBtn = document.getElementById("cameraCancelBtn");
+let cameraStream = null;
+
 function abrirImageModal(src, alt = "Previsualización de imagen") {
   if (!imageModal || !imageModalImg) return;
 
@@ -151,10 +165,111 @@ chips.forEach((chip) => {
 });
 
 /* ---------- Adjuntar imagen ---------- */
-attachBtn.addEventListener("click", () => fileInput.click());
+attachBtn.addEventListener("click", () => {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    fileInput.click();
+    return;
+  }
 
-fileInput.addEventListener("change", () => {
-  const archivos = Array.from(fileInput.files || []);
+  abrirSourceModal();
+});
+
+function abrirSourceModal() {
+  if (!sourceModal) return;
+
+  sourceModal.classList.add("visible");
+  sourceModal.setAttribute("aria-hidden", "false");
+}
+
+function cerrarSourceModal() {
+  if (!sourceModal) return;
+
+  sourceModal.classList.remove("visible");
+  sourceModal.setAttribute("aria-hidden", "true");
+}
+
+cameraSourceBtn?.addEventListener("click", () => {
+  cerrarSourceModal();
+  abrirCamara();
+});
+
+fileSourceBtn?.addEventListener("click", () => {
+  cerrarSourceModal();
+  fileInput?.click();
+});
+
+sourceModalClose?.addEventListener("click", () => cerrarSourceModal());
+sourceModalBackdrop?.addEventListener("click", () => cerrarSourceModal());
+
+function abrirCamara() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert("Tu navegador no soporta acceso a la cámara.");
+    return;
+  }
+
+  if (!cameraModal || !cameraVideo) return;
+
+  cameraModal.classList.add("visible");
+  cameraModal.setAttribute("aria-hidden", "false");
+
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
+    .then((stream) => {
+      cameraStream = stream;
+      cameraVideo.srcObject = stream;
+      cameraVideo.play();
+    })
+    .catch(() => {
+      cerrarCamara();
+      fileInput?.click();
+    });
+}
+
+function cerrarCamara() {
+  if (!cameraModal || !cameraVideo) return;
+
+  cameraModal.classList.remove("visible");
+  cameraModal.setAttribute("aria-hidden", "true");
+
+  if (cameraStream) {
+    cameraStream.getTracks().forEach((track) => track.stop());
+    cameraStream = null;
+  }
+
+  if (cameraVideo) {
+    cameraVideo.pause();
+    cameraVideo.srcObject = null;
+  }
+}
+
+cameraCaptureBtn?.addEventListener("click", () => {
+  if (!cameraVideo || !cameraModal) return;
+
+  const canvas = document.createElement("canvas");
+  const width = cameraVideo.videoWidth || 1024;
+  const height = cameraVideo.videoHeight || 768;
+  canvas.width = width;
+  canvas.height = height;
+
+  const contexto = canvas.getContext("2d");
+  contexto.drawImage(cameraVideo, 0, 0, width, height);
+
+  canvas.toBlob((blob) => {
+    if (!blob) {
+      cerrarCamara();
+      return;
+    }
+
+    const archivo = new File([blob], `foto-${Date.now()}.png`, { type: "image/png" });
+    manejarArchivosImagenes([archivo]);
+    cerrarCamara();
+  }, "image/png");
+});
+
+cameraCancelBtn?.addEventListener("click", () => cerrarCamara());
+cameraModalClose?.addEventListener("click", () => cerrarCamara());
+cameraModalBackdrop?.addEventListener("click", () => cerrarCamara());
+
+function manejarArchivosImagenes(archivos) {
   if (!archivos.length) {
     limpiarImagenesSeleccionadas();
     return;
@@ -166,14 +281,61 @@ fileInput.addEventListener("change", () => {
 
   if (restantes <= 0) {
     alert(`Máximo ${MAX_IMAGENES} imágenes a la vez.`);
-    fileInput.value = "";
+    if (fileInput) fileInput.value = "";
     return;
   }
 
   const paraAgregar = nuevos.slice(0, restantes);
+  if (!paraAgregar.length) {
+    if (fileInput) fileInput.value = "";
+    return;
+  }
+
   imagenesSeleccionadas = [...imagenesSeleccionadas, ...paraAgregar];
   renderizarPreviews();
-  fileInput.value = "";
+  if (fileInput) fileInput.value = "";
+}
+
+fileInput.addEventListener("change", () => {
+  const archivos = Array.from(fileInput.files || []);
+  manejarArchivosImagenes(archivos);
+});
+
+composerEl.addEventListener("paste", (event) => {
+  const items = Array.from(event.clipboardData?.items || []);
+  const imagenesPegadas = items
+    .filter((item) => item.type.startsWith("image/"))
+    .map((item) => item.getAsFile())
+    .filter(Boolean);
+
+  if (!imagenesPegadas.length) return;
+
+  event.preventDefault();
+  manejarArchivosImagenes(imagenesPegadas);
+});
+
+composerEl.addEventListener("dragover", (event) => {
+  const archivos = Array.from(event.dataTransfer?.files || []);
+  if (!archivos.length) return;
+
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "copy";
+  inputEl.classList.add("drag-target");
+  composerEl.classList.add("composer-drop");
+});
+
+composerEl.addEventListener("dragleave", (event) => {
+  if (event.relatedTarget && composerEl.contains(event.relatedTarget)) return;
+  inputEl.classList.remove("drag-target");
+  composerEl.classList.remove("composer-drop");
+});
+
+composerEl.addEventListener("drop", (event) => {
+  event.preventDefault();
+  const archivos = Array.from(event.dataTransfer?.files || []);
+  inputEl.classList.remove("drag-target");
+  composerEl.classList.remove("composer-drop");
+  manejarArchivosImagenes(archivos);
 });
 
 /* ---------- Utilidades de mensajes ---------- */
