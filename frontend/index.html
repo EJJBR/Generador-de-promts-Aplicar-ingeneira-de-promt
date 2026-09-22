@@ -77,7 +77,55 @@
         </div>
       </form>
 
+      <div class="source-modal" id="sourceModal" aria-hidden="true">
+        <div class="source-modal-backdrop" id="sourceModalBackdrop"></div>
+        <div class="source-modal-dialog">
+          <div class="source-modal-header">
+            <span class="source-modal-title">Adjuntar imagen</span>
+            <button type="button" class="icon-btn camera-close" id="sourceModalClose" aria-label="Cerrar origen">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M18.3 5.71 12 12.01l-6.3-6.3-1.41 1.41 6.3 6.3-6.3 6.3 1.41 1.41 6.3-6.3 6.3 6.3 1.41-1.41-6.3-6.3 6.3-6.3z"/></svg>
+            </button>
+          </div>
+          <p class="source-modal-text">¿Cómo quieres añadir la imagen?</p>
+          <div class="source-modal-options">
+            <button type="button" class="source-modal-option" id="cameraSourceBtn">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M9 3 7.17 5H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2h-3.17L15 3H9zm3 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/></svg>
+              <span>Tomar foto</span>
+            </button>
+            <button type="button" class="source-modal-option" id="fileSourceBtn">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M6 2h9l5 5v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm7 7h-4v2h4V9zm-4 4h8v2H9v-2zm0 4h8v2H9v-2z"/></svg>
+              <span>Elegir archivo</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="camera-modal" id="cameraModal" aria-hidden="true">
+        <div class="camera-modal-backdrop" id="cameraModalBackdrop"></div>
+        <div class="camera-modal-dialog">
+          <div class="camera-modal-header">
+            <span class="camera-modal-title">Tomar foto</span>
+            <button type="button" class="icon-btn camera-close" id="cameraModalClose" aria-label="Cerrar cámara">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M18.3 5.71 12 12.01l-6.3-6.3-1.41 1.41 6.3 6.3-6.3 6.3 1.41 1.41 6.3-6.3 6.3 6.3 1.41-1.41-6.3-6.3 6.3-6.3z"/></svg>
+            </button>
+          </div>
+          <video id="cameraVideo" autoplay playsinline muted></video>
+          <div class="camera-modal-actions">
+            <button type="button" class="camera-action cancel" id="cameraCancelBtn">Cancelar</button>
+            <button type="button" class="camera-action capture" id="cameraCaptureBtn">Tomar foto</button>
+          </div>
+        </div>
+      </div>
+
     </main>
+  </div>
+
+  <div class="image-modal" id="imageModal" aria-hidden="true">
+    <div class="image-modal-backdrop" id="imageModalBackdrop"></div>
+    <div class="image-modal-dialog" role="dialog" aria-modal="true" aria-label="Previsualización de imagen">
+      <button class="image-modal-close" id="imageModalClose" aria-label="Cerrar vista previa">×</button>
+      <img id="imageModalImg" src="" alt="Previsualización">
+    </div>
   </div>
 
   <script src="script.js"></script>

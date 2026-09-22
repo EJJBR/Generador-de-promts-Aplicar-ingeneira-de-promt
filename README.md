@@ -94,7 +94,7 @@ generador-prompts/
    GROQ_API_KEY=tu_api_key_aqui
    ```
 4. Ejecutar el servidor:
-   ```bash
+   ```
    uvicorn app.main:app --reload
    ```
 
