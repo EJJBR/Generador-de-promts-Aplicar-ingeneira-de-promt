@@ -11,6 +11,7 @@ from app.services.imagen_service import crear_mensaje_imagen, crear_mensaje_vari
 logger = logging.getLogger(__name__)
 
 MODEL_TEXTO = os.getenv("GROQ_TEXT_MODEL", "openai/gpt-oss-120b")
+MODEL_TEXTO_FALLBACK = os.getenv("GROQ_TEXT_FALLBACK_MODEL", "openai/gpt-oss-20b").strip()
 MODEL_VISION = os.getenv("GROQ_VISION_MODEL", "qwen/qwen3.8-27b")
 MODEL_VISION_FALLBACK = os.getenv("GROQ_VISION_FALLBACK_MODEL", "").strip()
 
@@ -45,6 +46,11 @@ def _modelos_visuales() -> list[str]:
     return list(dict.fromkeys(model for model in (MODEL_VISION, MODEL_VISION_FALLBACK) if model))
 
 
+def _modelos_texto() -> list[str]:
+    """Devuelve modelos textuales configurados sin repetir el principal."""
+    return list(dict.fromkeys(model for model in (MODEL_TEXTO, MODEL_TEXTO_FALLBACK) if model))
+
+
 def clasificar_consulta(consulta: str) -> dict:
     """
     Envía la consulta del estudiante a Groq y devuelve un diccionario con:
@@ -53,25 +59,33 @@ def clasificar_consulta(consulta: str) -> dict:
     Lanza ValueError si el modelo no devuelve un JSON válido.
     """
     client = get_client()
-    timestamp = datetime.now(timezone.utc).isoformat()
-    logger.info("groq_text_route_attempt model=%s at=%s", MODEL_TEXTO, timestamp)
+    last_error = None
 
-    try:
-        respuesta = client.chat.completions.create(
-            model=MODEL_TEXTO,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT_TEXTO},
-                {"role": "user", "content": consulta},
-            ],
-            temperature=0.3,
-            response_format={"type": "json_object"},
-        )
+    for index, model in enumerate(_modelos_texto()):
+        timestamp = datetime.now(timezone.utc).isoformat()
+        event_name = "groq_text_route_attempt" if index == 0 else "groq_text_fallback_attempt"
+        logger.info("%s model=%s at=%s", event_name, model, timestamp)
 
-        contenido = respuesta.choices[0].message.content
-        return _extract_json_from_content(contenido)
-    except Exception as exc:
-        logger.warning("groq_text_route_failed model=%s at=%s error=%s", MODEL_TEXTO, timestamp, str(exc))
-        raise
+        try:
+            respuesta = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT_TEXTO},
+                    {"role": "user", "content": consulta},
+                ],
+                temperature=0.3,
+                response_format={"type": "json_object"},
+            )
+
+            contenido = respuesta.choices[0].message.content
+            return _extract_json_from_content(contenido)
+        except Exception as exc:
+            last_error = exc
+            logger.warning("groq_text_route_failed model=%s at=%s error=%s", model, timestamp, str(exc))
+            if not _es_groq_rate_limit_error(exc):
+                raise
+
+    raise last_error or ValueError("No fue posible procesar la consulta textual.")
 
 
 def clasificar_consulta_con_imagen(

@@ -37,6 +37,27 @@ def test_clasificar_consulta_parses_json():
 	assert "prompt_optimizado" in resultado
 
 
+def test_clasificar_consulta_usa_modelo_textual_fallback(caplog):
+	fake_content = '{"tema":"probabilidad","nivel":"básico","ia_recomendada":"GPT","justificacion":"porque...","prompt_optimizado":"texto..."}'
+	fake_response = MagicMock()
+	fake_response.choices = [MagicMock()]
+	fake_response.choices[0].message.content = fake_content
+
+	mock_client = MagicMock()
+	mock_client.chat.completions.create.side_effect = [
+		Exception("429 rate_limit_exceeded OTPM exceeded"),
+		fake_response,
+	]
+
+	with patch("app.services.clasificador.get_client", return_value=mock_client):
+		with caplog.at_level(logging.INFO):
+			resultado = clasificar_consulta("¿Qué es la probabilidad?")
+
+	assert resultado["tema"] == "probabilidad"
+	assert mock_client.chat.completions.create.call_count == 2
+	assert "groq_text_fallback_attempt model=openai/gpt-oss-20b" in caplog.text
+
+
 def test_clasificar_consulta_raises_on_invalid_json():
 	fake_content = "not a json"
 	fake_response = MagicMock()

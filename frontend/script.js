@@ -41,6 +41,13 @@ const cameraCaptureBtn = document.getElementById("cameraCaptureBtn");
 const cameraCancelBtn = document.getElementById("cameraCancelBtn");
 let cameraStream = null;
 
+function devolverFocoAlAdjuntar() {
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
+  attachBtn?.focus();
+}
+
 function abrirImageModal(src, alt = "Previsualización de imagen") {
   if (!imageModal || !imageModalImg) return;
 
@@ -186,6 +193,7 @@ function cerrarSourceModal() {
 
   sourceModal.classList.remove("visible");
   sourceModal.setAttribute("aria-hidden", "true");
+  devolverFocoAlAdjuntar();
 }
 
 cameraSourceBtn?.addEventListener("click", () => {
@@ -227,6 +235,9 @@ function abrirCamara() {
 function cerrarCamara() {
   if (!cameraModal || !cameraVideo) return;
 
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
   cameraModal.classList.remove("visible");
   cameraModal.setAttribute("aria-hidden", "true");
 
@@ -239,9 +250,11 @@ function cerrarCamara() {
     cameraVideo.pause();
     cameraVideo.srcObject = null;
   }
+
+  devolverFocoAlAdjuntar();
 }
 
-cameraCaptureBtn?.addEventListener("click", () => {
+function capturarFoto() {
   if (!cameraVideo || !cameraModal) return;
 
   const canvas = document.createElement("canvas");
@@ -263,6 +276,12 @@ cameraCaptureBtn?.addEventListener("click", () => {
     manejarArchivosImagenes([archivo]);
     cerrarCamara();
   }, "image/png");
+}
+
+cameraCaptureBtn?.addEventListener("click", capturarFoto);
+cameraVideo?.addEventListener("dblclick", (event) => {
+  event.preventDefault();
+  capturarFoto();
 });
 
 cameraCancelBtn?.addEventListener("click", () => cerrarCamara());

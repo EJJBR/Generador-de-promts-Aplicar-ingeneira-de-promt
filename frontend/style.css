@@ -495,13 +495,15 @@ body {
 .camera-modal-dialog {
   position: relative;
   z-index: 2;
-  width: min(680px, calc(100vw - 40px));
+  width: min(680px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
   background: var(--card);
   color: var(--text);
   border-radius: var(--radius);
   border: 1px solid var(--border);
   padding: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  overflow-y: auto;
 }
 
 .source-modal-header,
@@ -531,6 +533,8 @@ body {
 }
 
 .source-modal-option {
+  width: 100%;
+  min-width: 0;
   min-height: 56px;
   padding: 12px 16px;
   border-radius: var(--radius-sm);
@@ -564,12 +568,14 @@ body {
 
 .camera-modal-dialog video {
   width: 100%;
-  max-height: 420px;
+  max-height: min(420px, 54dvh);
   background: var(--bg);
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   margin: 14px 0 12px;
   object-fit: cover;
+  touch-action: manipulation;
+  cursor: pointer;
 }
 
 .camera-modal-actions {
@@ -591,6 +597,27 @@ body {
   background: var(--azul);
   color: #fff;
   border-color: var(--azul);
+}
+
+@media (max-width: 520px) {
+  .source-modal-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .camera-modal-dialog {
+    padding: 10px;
+  }
+
+  .camera-modal-dialog video {
+    max-height: 42dvh;
+    margin: 8px 0;
+  }
+
+  .camera-modal-actions {
+    padding-bottom: 2px;
+  }
 }
 
 .preview {
